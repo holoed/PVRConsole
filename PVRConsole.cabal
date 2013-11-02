@@ -5,7 +5,7 @@ name:                PVRConsole
 version:             0.1.0.0
 synopsis:            TVHeadend simple console controller
 -- description:         
-license:             Apache-2.0
+license:             MIT
 license-file:        LICENSE
 author:              Edmondo Pentangelo
 maintainer:          info@gattaca-tech.com
