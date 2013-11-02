@@ -14,7 +14,7 @@ import System.Locale
 import System.Environment
 import Data.Configurator
 import Data.Configurator.Types
-import Paths_app
+import Paths_PVRConsole
 
 data Entries = Entries { totalCount :: Int, 
                          entries :: [Entry] } 
