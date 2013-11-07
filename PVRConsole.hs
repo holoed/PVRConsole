@@ -22,7 +22,9 @@ data Entries = Entries { totalCount :: Int,
 
 data Entry = Entry { channel :: !Text, 
                      title :: !Text, 
-                     start :: Int } 
+                     description :: !Text,
+                     start :: Int, 
+                     schedstate :: !Text } 
                      deriving (Show, Generic)
 
 instance FromJSON Entries 
@@ -46,9 +48,11 @@ timeToString :: UTCTime -> String
 timeToString time = formatTime defaultTimeLocale "%c" time 
 
 getTitle :: Entry -> String
-getTitle entry = printf "%s\n%s\n%s\n" ch tt st
+getTitle entry = printf "%s\n%s\n%s\n%s\n%s\n" ch tt ds sc st
                where ch = unpack (channel entry)
                      tt = unpack (title entry)
+                     ds = unpack (description entry)
+                     sc = unpack (schedstate entry)
                      st = timeToString (getTime (start entry))
                        
 titles :: Entries -> String
@@ -67,5 +71,3 @@ main =  do xs <- getArgs
            v <- getPvrData (getString host) (head xs)
            putStrLn (titles (fromJust v))
            return ()
-                  
-
