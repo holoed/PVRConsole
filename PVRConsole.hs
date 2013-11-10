@@ -16,6 +16,7 @@ import Data.Configurator
 import Data.Configurator.Types
 import Paths_PVRConsole
 import Text.PrettyPrint.Boxes
+import Control.Applicative
 
 data Entries = Entries { totalCount :: Int, 
                          entries :: [Entry] } 
@@ -23,13 +24,19 @@ data Entries = Entries { totalCount :: Int,
 
 data Entry = Entry { channel :: !Text, 
                      title :: !Text, 
-                     description :: !Text,
+                     description :: Maybe Text,
                      start :: Int } 
                      deriving (Show, Generic)
 
 instance FromJSON Entries 
         
-instance FromJSON Entry 
+instance FromJSON Entry where
+ parseJSON (Object v) =
+    Entry <$> v .:  "channel"
+          <*> v .:  "title"
+          <*> v .:? "description"
+          <*> v .:  "start"
+
 
 jsonURL :: String -> String -> String
 jsonURL host cmd = printf "http://%s:9981/%s" host cmd
@@ -51,7 +58,7 @@ getTitle :: Entry -> Box
 getTitle entry = ch <+> tt <+> st // ds
                where ch = alignHoriz left 20   (text (unpack (channel entry)))
                      tt = alignHoriz left 40  (text (unpack (title entry)))
-                     ds = para left 73 (unpack (description entry))
+                     ds = para left 73 (maybe "" unpack (description entry))
                      st = alignHoriz left 10  (text (timeToString (getTime (start entry))))
                        
 titles :: Entries -> Box
