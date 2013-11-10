@@ -15,6 +15,7 @@ import System.Environment
 import Data.Configurator
 import Data.Configurator.Types
 import Paths_PVRConsole
+import Text.PrettyPrint.Boxes
 
 data Entries = Entries { totalCount :: Int, 
                          entries :: [Entry] } 
@@ -23,8 +24,7 @@ data Entries = Entries { totalCount :: Int,
 data Entry = Entry { channel :: !Text, 
                      title :: !Text, 
                      description :: !Text,
-                     start :: Int, 
-                     schedstate :: !Text } 
+                     start :: Int } 
                      deriving (Show, Generic)
 
 instance FromJSON Entries 
@@ -47,17 +47,16 @@ getTime secs = posixSecondsToUTCTime $ fromIntegral secs
 timeToString :: UTCTime -> String
 timeToString time = formatTime defaultTimeLocale "%c" time 
 
-getTitle :: Entry -> String
-getTitle entry = printf "%s\n%s\n%s\n%s\n%s\n" ch tt ds sc st
-               where ch = unpack (channel entry)
-                     tt = unpack (title entry)
-                     ds = unpack (description entry)
-                     sc = unpack (schedstate entry)
-                     st = timeToString (getTime (start entry))
+getTitle :: Entry -> Box
+getTitle entry = ch <+> tt <+> st // ds
+               where ch = alignHoriz left 20   (text (unpack (channel entry)))
+                     tt = alignHoriz left 40  (text (unpack (title entry)))
+                     ds = para left 73 (unpack (description entry))
+                     st = alignHoriz left 10  (text (timeToString (getTime (start entry))))
                        
-titles :: Entries -> String
-titles xs = foldl f "" (entries xs)
-          where f acc x = printf "%s\n%s" acc (getTitle x)
+titles :: Entries -> Box
+titles xs = foldl f nullBox (entries xs)
+          where f acc x = acc /+/ (getTitle x)
 
 getString :: Value -> String
 getString (String s) = unpack s
@@ -69,5 +68,5 @@ main =  do xs <- getArgs
            cfg <- load [Required file]
            host <-require cfg "host" :: IO Value                                                             
            v <- getPvrData (getString host) (head xs)
-           putStrLn (titles (fromJust v))
+           printBox (titles (fromJust v)) 
            return ()
